@@ -17,7 +17,7 @@
 
 import logging
 from codecs import getreader
-from os import path
+from os import path, makedirs
 try:
     from configparser import ConfigParser  # pylint: disable=import-error
 except ImportError:
@@ -78,3 +78,10 @@ def get_oauth_api(config):
         config.get("twitter", "access_token_key"),
         config.get("twitter", "access_token_secret"))
     return API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
+
+def check_and_create_dir(dir_path):
+    """Check if a directory path exists, create otherwise."""
+    if not path.exists(dir_path):
+        makedirs(dir_path)
+        return True
+    return False
