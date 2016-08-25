@@ -34,7 +34,7 @@ SEARCH_COUNT = 20
 LOGGER = logging.getLogger(__name__)
 init_logger(LOGGER)
 
-def _at_least_one(user_ids, screen_names):
+def _ensure_at_least_one(user_ids, screen_names):
     if user_ids is None:
         user_ids = []
     if screen_names is None:
@@ -43,8 +43,9 @@ def _at_least_one(user_ids, screen_names):
         raise ValueError("at least user_ids or screen_names must be provided")
     return user_ids, screen_names
 
-def _only_one(user_id, screen_name):
-    if (not user_id and not screen_name) or (user_id and screen_name):
+def _ensure_only_one(user_id, screen_name):
+    if (user_id is None and screen_name is None) or \
+        (user_id is not None and screen_name is not None):
         raise ValueError("only user_id or screen_name must be provided")
     return user_id, screen_name
 
@@ -65,7 +66,7 @@ def _get_ids(writer, endpoint, args, limit=0):
 def get_hydrated(writer, user_ids=None, screen_names=None):
     """Get hydrated Twitter User-objects from a list of user ids and/or screen names."""
     LOGGER.info("get_hydrated() starting")
-    user_ids, screen_names = _at_least_one(user_ids, screen_names)
+    user_ids, screen_names = _ensure_at_least_one(user_ids, screen_names)
 
     # initialize config and Twitter API
     config = read_config()
@@ -88,18 +89,18 @@ def get_hydrated(writer, user_ids=None, screen_names=None):
 def get_followers(writer, user_id=None, screen_name=None):
     """Get the ids of the followers for a Twitter user id or screen name."""
     LOGGER.info("get_followers() starting")
-    user_id, screen_name = _only_one(user_id, screen_name)
+    user_id, screen_name = _ensure_only_one(user_id, screen_name)
 
     # initialize config and Twitter API
     config = read_config()
     api = get_app_auth_api(config)
 
     # process user id or screen name, storing returned ids in plain text
-    args = {
-        "count": FOLLOWERS_IDS_COUNT,
-        "user_id": user_id,
-        "screen_name": screen_name,
-    }
+    args = {"count": FOLLOWERS_IDS_COUNT}
+    if user_id is not None:
+        args.update({"user_id": user_id})
+    if screen_name is not None:
+        args.update({"screen_name": screen_name})
     limit = config.getint("followers", "limit")
     result = _get_ids(writer, api.followers_ids, args, limit)
     LOGGER.info("downloaded %d follower id(s)", result)
@@ -110,7 +111,7 @@ def get_followers(writer, user_id=None, screen_name=None):
 def bulk_get_followers(output_dir, user_ids=None, screen_names=None):
     """Get the ids of the followers for a bulk of Twitter user ids and/or screen names."""
     LOGGER.info("bulk_get_followers() starting")
-    user_ids, screen_names = _at_least_one(user_ids, screen_names)
+    user_ids, screen_names = _ensure_at_least_one(user_ids, screen_names)
 
     # bulk process user ids
     num_processed = bulk_process(LOGGER, output_dir, "%d.txt", get_followers,
@@ -130,18 +131,18 @@ def bulk_get_followers(output_dir, user_ids=None, screen_names=None):
 def get_friends(writer, user_id=None, screen_name=None):
     """Get the ids of the friends for a Twitter user id or screen name."""
     LOGGER.info("get_friends() starting")
-    user_id, screen_name = _only_one(user_id, screen_name)
+    user_id, screen_name = _ensure_only_one(user_id, screen_name)
 
     # initialize config and Twitter API
     config = read_config()
     api = get_app_auth_api(config)
 
     # process user id or screen name, storing returned ids in plain text
-    args = {
-        "count": FRIENDS_IDS_COUNT,
-        "user_id": user_id,
-        "screen_name": screen_name,
-    }
+    args = {"count": FRIENDS_IDS_COUNT}
+    if user_id is not None:
+        args.update({"user_id": user_id})
+    if screen_name is not None:
+        args.update({"screen_name": screen_name})
     limit = config.getint("friends", "limit")
     result = _get_ids(writer, api.friends_ids, args, limit)
     LOGGER.info("downloaded %d friend id(s)", result)
@@ -152,7 +153,7 @@ def get_friends(writer, user_id=None, screen_name=None):
 def bulk_get_friends(output_dir, user_ids=None, screen_names=None):
     """Get the ids of the friends for a bulk of Twitter user ids and/or screen names."""
     LOGGER.info("bulk_get_friends() starting")
-    user_ids, screen_names = _at_least_one(user_ids, screen_names)
+    user_ids, screen_names = _ensure_at_least_one(user_ids, screen_names)
 
     # bulk process user ids
     num_processed = bulk_process(LOGGER, output_dir, "%d.txt", get_friends,
