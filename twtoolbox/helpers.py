@@ -24,7 +24,7 @@ except ImportError:
     from ConfigParser import ConfigParser  # pylint: disable=import-error
 import colorlog
 from pkg_resources import resource_stream
-from tweepy import API, AppAuthHandler, OAuthHandler
+from tweepy import TweepError, API, AppAuthHandler, OAuthHandler
 
 # module constants
 CONFIG_DEFAULTS = "defaults.cfg"
@@ -79,9 +79,22 @@ def get_oauth_api(config):
         config.get("twitter", "access_token_secret"))
     return API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
 
-def check_and_create_dir(dir_path):
-    """Check if a directory path exists, create otherwise."""
-    if not path.exists(dir_path):
-        makedirs(dir_path)
-        return True
-    return False
+def bulk_process(logger, output_dir, filename_tmpl, function, func_input, var_arg):  # pylint: disable=too-many-arguments
+    """Process a function in bulk using an iterable input and a variable argument."""
+    if not path.exists(output_dir):
+        makedirs(output_dir)
+        logger.info("created output directory: %s", output_dir)
+    num_processed = 0
+    for basename, value in func_input:
+        output_filename = path.join(output_dir, filename_tmpl % basename)
+        if path.exists(output_filename):
+            logger.warning("skipping existing file: %s", output_filename)
+            continue
+        try:
+            logger.info("processing: %s", value)
+            with open(output_filename, "w") as writer:
+                function(writer, **{var_arg: value})
+            num_processed += 1
+        except TweepError:
+            logger.exception("exception while using the REST API")
+    return num_processed

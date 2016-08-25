@@ -17,19 +17,18 @@
 
 import logging
 import json
-from os import path
 try:
     from itertools import izip_longest as zip_longest  # pylint: disable=no-name-in-module
 except ImportError:
     from itertools import zip_longest  # pylint: disable=no-name-in-module
 from tweepy import Cursor, TweepError
-from .helpers import init_logger, read_config, get_app_auth_api, get_oauth_api
-from .helpers import check_and_create_dir
+from .helpers import init_logger, read_config, get_app_auth_api, get_oauth_api, bulk_process
 
 # module constants
 LOOKUP_USERS_PER_REQUEST = 100
 FOLLOWERS_IDS_COUNT = 5000
 FRIENDS_IDS_COUNT = 5000
+SEARCH_COUNT = 20
 
 # module logging
 LOGGER = logging.getLogger(__name__)
@@ -62,24 +61,6 @@ def _get_ids(writer, endpoint, args, limit=0):
         writer.write("%d\n" % user_id)
         num_ids += 1
     return num_ids
-
-def _bulk_process(output_dir, filename_tmpl, iterable, function, variable):
-    if check_and_create_dir(output_dir):
-        LOGGER.info("created output directory: %s", output_dir)
-    num_elements = 0
-    for element in iterable:
-        output_filename = path.join(output_dir, filename_tmpl % element)
-        if path.exists(output_filename):
-            LOGGER.warning("skipping already processed: %s", element)
-            continue
-        try:
-            LOGGER.info("processing: %d", element)
-            with open(output_filename, "w") as writer:
-                function(writer, **{variable: element})
-            num_elements += 1
-        except TweepError:
-            LOGGER.exception("exception while using the REST API")
-    return num_elements
 
 def get_hydrated(writer, user_ids=None, screen_names=None):
     """Get hydrated Twitter User-objects from a list of user ids and/or screen names."""
@@ -131,14 +112,16 @@ def bulk_get_followers(output_dir, user_ids=None, screen_names=None):
     user_ids, screen_names = _at_least_one(user_ids, screen_names)
 
     # bulk process user ids
-    result = _bulk_process(output_dir, "%d.txt", user_ids, get_followers, "user_id")
-    if result > 0:
-        LOGGER.info("processed %d user ids", result)
+    num_processed = bulk_process(LOGGER, output_dir, "%d.txt", get_followers,
+                                 [(el, el) for el in user_ids], "user_id")
+    if num_processed > 0:
+        LOGGER.info("processed %d user ids", num_processed)
 
     # bulk process screen names
-    result = _bulk_process(output_dir, "%s.txt", screen_names, get_followers, "screen_name")
-    if result > 0:
-        LOGGER.info("processed %d screen names", result)
+    num_processed = bulk_process(LOGGER, output_dir, "%s.txt", get_followers,
+                                 [(el.lower(), el) for el in screen_names], "screen_name")
+    if num_processed > 0:
+        LOGGER.info("processed %d screen names", num_processed)
 
     # finished
     LOGGER.info("bulk_get_followers() finished")
@@ -170,14 +153,52 @@ def bulk_get_friends(output_dir, user_ids=None, screen_names=None):
     user_ids, screen_names = _at_least_one(user_ids, screen_names)
 
     # bulk process user ids
-    result = _bulk_process(output_dir, "%d.txt", user_ids, get_friends, "user_id")
-    if result > 0:
-        LOGGER.info("processed %d user ids", result)
+    num_processed = bulk_process(LOGGER, output_dir, "%d.txt", get_friends,
+                                 [(el, el) for el in user_ids], "user_id")
+    if num_processed > 0:
+        LOGGER.info("processed %d user ids", num_processed)
 
     # bulk process screen names
-    result = _bulk_process(output_dir, "%s.txt", screen_names, get_friends, "screen_name")
-    if result > 0:
-        LOGGER.info("processed %d screen names", result)
+    num_processed = bulk_process(LOGGER, output_dir, "%s.txt", get_friends,
+                                 [(el.lower(), el) for el in screen_names], "screen_name")
+    if num_processed > 0:
+        LOGGER.info("processed %d screen names", num_processed)
 
     # finished
     LOGGER.info("bulk_get_friends() finished")
+
+def search(writer, query):
+    """Get User-objects from Twitter using the People Search API."""
+    LOGGER.info("search() starting")
+
+    # initialize config and Twitter API
+    config = read_config()
+    api = get_oauth_api(config)  # only OAuth supported for the users/search API
+
+    # process the query, storing returned users in JSON format
+    num_users = 0
+    search_params = {
+        "q": query,
+        "count": SEARCH_COUNT,
+    }
+    limit = config.getint("search_users", "limit")
+    for user in Cursor(api.search_users, **search_params).items(limit):
+        writer.write("%s\n" % json.dumps(user._json, separators=(",", ":")))  # pylint: disable=protected-access
+        num_users += 1
+    LOGGER.info("downloaded %d user(s)", num_users)
+
+    # finished
+    LOGGER.info("search() finished")
+
+def bulk_search(output_dir, queries):
+    """Get User-objects from Twitter using the People Search API for a bulk of queries."""
+    LOGGER.info("bulk_search() starting")
+
+    # bulk process queries
+    num_processed = bulk_process(LOGGER, output_dir, "%d.json", search,
+                                 enumerate(queries), "query")
+    if num_processed > 0:
+        LOGGER.info("processed %d queries", num_processed)
+
+    # finished
+    LOGGER.info("bulk_search() finished")
