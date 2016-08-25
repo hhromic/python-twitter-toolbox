@@ -100,7 +100,8 @@ def get_followers(writer, user_id=None, screen_name=None):
         "user_id": user_id,
         "screen_name": screen_name,
     }
-    result = _get_ids(writer, api.followers_ids, args, config.getint("followers", "limit"))
+    limit = config.getint("followers", "limit")
+    result = _get_ids(writer, api.followers_ids, args, limit)
     LOGGER.info("downloaded %d follower id(s)", result)
 
     # finished
@@ -141,7 +142,8 @@ def get_friends(writer, user_id=None, screen_name=None):
         "user_id": user_id,
         "screen_name": screen_name,
     }
-    result = _get_ids(writer, api.friends_ids, args, config.getint("friends", "limit"))
+    limit = config.getint("friends", "limit")
+    result = _get_ids(writer, api.friends_ids, args, limit)
     LOGGER.info("downloaded %d friend id(s)", result)
 
     # finished
