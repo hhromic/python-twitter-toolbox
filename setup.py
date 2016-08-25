@@ -12,7 +12,7 @@ setup(
   url = "https://github.com/hhromic/python-twitter-toolbox",
   download_url = "https://github.com/hhromic/python-twitter-toolbox/releases/latest",
   install_requires = ["tweepy", "colorlog"],
-  keywords = ["twitter", "api", "command line", "toolbox"],
+  keywords = ["twitter", "api", "cli", "toolbox"],
   classifiers = [],
   license = "Apache-2.0",
   platforms = ["all"],
