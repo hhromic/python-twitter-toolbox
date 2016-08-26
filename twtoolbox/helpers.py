@@ -61,12 +61,12 @@ def init_logger(logger):
     logger.setLevel(logging.INFO)
     logger.addHandler(colored_handler)
 
-def read_screen_names(filename):
-    """Read a list of Twitter screen names from a file."""
+def read_strings(filename):
+    """Read a list of strings from a file."""
     return _read_lines(filename)
 
-def read_user_ids(filename):
-    """Read a list of Twitter user ids from a file."""
+def read_integers(filename):
+    """Read a list of integers from a file."""
     return [int(line) for line in _read_lines(filename)]
 
 def read_config():
@@ -118,7 +118,7 @@ def bulk_process(logger, output_dir, filename_tmpl, function, func_input, var_ar
                 continue
             latest_id = _get_latest_id(output_filename)
 
-        # process the element with the provided function
+        # process the input element with the provided function
         try:
             logger.info("processing: %s", value)
             args = {var_arg: value}
