@@ -71,7 +71,18 @@ def get_retweets(writer, tweet_id):
     # finished
     LOGGER.info("get_retweets() finished")
 
-#def bulk_get_retweets(output_dir, tweet_ids):
+def bulk_get_retweets(output_dir, tweet_ids):
+    """Get hydrated Retweet-objects for a bulk of Tweet ids."""
+    LOGGER.info("bulk_get_retweets() starting")
+
+    # bulk process Tweet ids
+    num_processed = bulk_process(LOGGER, output_dir, "%d.json", get_retweets,
+                                 [(el, el) for el in tweet_ids], "tweet_id")
+    if num_processed > 0:
+        LOGGER.info("processed %d user ids", num_processed)
+
+    # finished
+    LOGGER.info("bulk_get_retweets() finished")
 
 def get_timeline(writer, user_id=None, screen_name=None, since_id=0):
     """Get hydrated Tweet-objects from a user timeline."""
@@ -100,8 +111,26 @@ def get_timeline(writer, user_id=None, screen_name=None, since_id=0):
     # finished
     LOGGER.info("get_timeline() finished")
 
-#def bulk_get_timeline(output_dir, user_ids=None, screen_names=None):
-#    user_ids, screen_names = ensure_at_least_one(user_ids, screen_names)
+def bulk_get_timeline(output_dir, user_ids=None, screen_names=None):
+    """Get hydrated Tweet-objects from a bulk of user timelines."""
+    LOGGER.info("bulk_get_timeline() starting")
+    user_ids, screen_names = ensure_at_least_one(user_ids, screen_names)
+
+    # bulk process user ids
+    num_processed = bulk_process(LOGGER, output_dir, "%d.txt", get_timeline,
+                                 [(el, el) for el in user_ids], "user_id", resume=True)
+    if num_processed > 0:
+        LOGGER.info("processed %d user ids", num_processed)
+
+    # bulk process screen names
+    num_processed = bulk_process(LOGGER, output_dir, "%s.txt", get_timeline,
+                                 [(el.lower(), el) for el in screen_names],
+                                 "screen_name", resume=True)
+    if num_processed > 0:
+        LOGGER.info("processed %d screen names", num_processed)
+
+    # finished
+    LOGGER.info("bulk_get_timeline() finished")
 
 def search(writer, query, since_id=0):
     """Get Tweet-objects from Twitter using the Search API."""
