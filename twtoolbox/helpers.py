@@ -35,12 +35,6 @@ from tweepy import TweepError, API, AppAuthHandler, OAuthHandler
 CONFIG_DEFAULTS = "defaults.cfg"
 CONFIG_USER = "~/.twtoolbox.cfg"
 
-def _read_lines(filename):
-    if filename is None:
-        return []
-    with open(filename) as reader:
-        return [line.strip() for line in reader if not line.startswith("#")]
-
 def _get_latest_id(filename):
     latest_id = None
     with open(filename) as reader:
@@ -60,14 +54,6 @@ def init_logger(logger):
         "%(message)s"))
     logger.setLevel(logging.INFO)
     logger.addHandler(colored_handler)
-
-def read_strings(filename):
-    """Read a list of strings from a file."""
-    return _read_lines(filename)
-
-def read_integers(filename):
-    """Read a list of integers from a file."""
-    return [int(line) for line in _read_lines(filename)]
 
 def read_config():
     """Read default config and overlay user-defined config."""
