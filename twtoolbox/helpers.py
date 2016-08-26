@@ -93,6 +93,23 @@ def get_oauth_api(config):
         config.get("twitter", "access_token_secret"))
     return API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
 
+def ensure_at_least_one(user_ids, screen_names):
+    """Make sure at least one of user_ids or screen_names has data."""
+    if user_ids is None:
+        user_ids = []
+    if screen_names is None:
+        screen_names = []
+    if not user_ids and not screen_names:
+        raise ValueError("at least user_ids or screen_names must be provided")
+    return user_ids, screen_names
+
+def ensure_only_one(user_id, screen_name):
+    """Make sure only one of user_id or screen_name has data."""
+    if (user_id is None and screen_name is None) or \
+        (user_id is not None and screen_name is not None):
+        raise ValueError("only user_id or screen_name must be provided")
+    return user_id, screen_name
+
 def gen_chunks(*iterables, **kwargs):
     """Generate sequential components chunks of certain size from n-iterables."""
     size = kwargs.get("size", 10)
