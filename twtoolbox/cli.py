@@ -53,11 +53,28 @@ def tt_tweets_get_retweets():
 
 def tt_tweets_get_timeline():
     """Interface to tweets.bulk_get_timeline()"""
-    tweets.bulk_get_timeline()
+    parser = ArgumentParser(description=tweets.bulk_get_timeline.__doc__)
+    parser.add_argument("--user-ids", metavar="FILE",
+                        help="file with input user ids (text format)")
+    parser.add_argument("--screen-names", metavar="FILE",
+                        help="file with input user screen names (text format)")
+    parser.add_argument("--output-dir", metavar="DIRECTORY", required=True,
+                        help="directory for output Tweets (JSON format)")
+    args = parser.parse_args()
+    user_ids = _read_integers(args.user_ids)
+    screen_names = _read_strings(args.screen_names)
+    tweets.bulk_get_timeline(args.output_dir, user_ids, screen_names)
 
 def tt_tweets_search():
     """Interface to tweets.bulk_search()"""
-    tweets.bulk_search()
+    parser = ArgumentParser(description=tweets.bulk_search.__doc__)
+    parser.add_argument("--queries", metavar="FILE", required=True,
+                        help="file with input queries (text format)")
+    parser.add_argument("--output-dir", metavar="DIRECTORY", required=True,
+                        help="directory for output Tweets (JSON format)")
+    args = parser.parse_args()
+    queries = _read_strings(args.queries)
+    tweets.bulk_search(args.output_dir, queries)
 
 def tt_users_get_hydrated():
     """Interface to users.get_hydrated()"""
@@ -76,12 +93,39 @@ def tt_users_get_hydrated():
 
 def tt_users_get_followers():
     """Interface to users.bulk_get_followers()"""
-    users.bulk_get_followers()
+    parser = ArgumentParser(description=users.bulk_get_followers.__doc__)
+    parser.add_argument("--user-ids", metavar="FILE",
+                        help="file with input user ids (text format)")
+    parser.add_argument("--screen-names", metavar="FILE",
+                        help="file with input user screen names (text format)")
+    parser.add_argument("--output-dir", metavar="DIRECTORY", required=True,
+                        help="directory for output user ids (text format)")
+    args = parser.parse_args()
+    user_ids = _read_integers(args.user_ids)
+    screen_names = _read_strings(args.screen_names)
+    users.bulk_get_followers(args.output_dir, user_ids, screen_names)
 
 def tt_users_get_friends():
     """Interface to users.bulk_get_friends()"""
-    users.bulk_get_friends()
+    parser = ArgumentParser(description=users.bulk_get_friends.__doc__)
+    parser.add_argument("--user-ids", metavar="FILE",
+                        help="file with input user ids (text format)")
+    parser.add_argument("--screen-names", metavar="FILE",
+                        help="file with input user screen names (text format)")
+    parser.add_argument("--output-dir", metavar="DIRECTORY", required=True,
+                        help="directory for output user ids (text format)")
+    args = parser.parse_args()
+    user_ids = _read_integers(args.user_ids)
+    screen_names = _read_strings(args.screen_names)
+    users.bulk_get_friends(args.output_dir, user_ids, screen_names)
 
 def tt_users_search():
     """Interface to users.bulk_search()"""
-    users.bulk_search()
+    parser = ArgumentParser(description=users.bulk_search.__doc__)
+    parser.add_argument("--queries", metavar="FILE", required=True,
+                        help="file with input queries (text format)")
+    parser.add_argument("--output-dir", metavar="DIRECTORY", required=True,
+                        help="directory for output users (JSON format)")
+    args = parser.parse_args()
+    queries = _read_strings(args.queries)
+    users.bulk_search(args.output_dir, queries)
