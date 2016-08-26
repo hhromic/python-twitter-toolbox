@@ -19,10 +19,12 @@ import logging
 import json
 from tweepy import Cursor, TweepError
 from .helpers import init_logger, read_config, get_app_auth_api, get_oauth_api
-from .helpers import gen_chunks, bulk_process
+from .helpers import ensure_at_least_one, ensure_only_one, gen_chunks, bulk_process
 
 # module constants
 LOOKUP_STATUSES_PER_REQUEST = 100
+RETWEETS_COUNT = 100
+TIMELINE_COUNT = 200
 SEARCH_COUNT = 100
 
 # module logging
@@ -41,8 +43,8 @@ def get_hydrated(writer, tweet_ids):
     num_tweets = 0
     for chunk in gen_chunks(tweet_ids, size=LOOKUP_STATUSES_PER_REQUEST):
         try:
-            for tweet in api.statuses_lookup(chunk[0]):
-                writer.write("%s\n" % json.dumps(tweet._json, separators=(",", ":")))  # pylint: disable=protected-access
+            for status in api.statuses_lookup(chunk[0]):
+                writer.write("%s\n" % json.dumps(status._json, separators=(",", ":")))  # pylint: disable=protected-access
                 num_tweets += 1
         except TweepError:
             LOGGER.exception("exception while using the REST API")
@@ -51,10 +53,55 @@ def get_hydrated(writer, tweet_ids):
     # finished
     LOGGER.info("get_hydrated() finished")
 
-#def get_retweets():
-#def bulk_get_retweets():
-#def get_timeline():
-#def bulk_get_timeline():
+def get_retweets(writer, tweet_id):
+    """Get hydrated Retweet-objects for a given Tweet id."""
+    LOGGER.info("get_retweets() starting")
+
+    # initialize config and Twitter API
+    config = read_config()
+    api = get_app_auth_api(config)
+
+    # process Tweet id, storing returned Retweets in JSON format
+    num_retweets = 0
+    for status in api.retweets(tweet_id, count=RETWEETS_COUNT):
+        writer.write("%s\n" % json.dumps(status._json, separators=(",", ":")))  # pylint: disable=protected-access
+        num_retweets += 1
+    LOGGER.info("downloaded %d Retweet(s)", num_retweets)
+
+    # finished
+    LOGGER.info("get_retweets() finished")
+
+#def bulk_get_retweets(output_dir, tweet_ids):
+
+def get_timeline(writer, user_id=None, screen_name=None, since_id=0):
+    """Get hydrated Tweet-objects from a user timeline."""
+    LOGGER.info("get_timeline() starting")
+    user_id, screen_name = ensure_only_one(user_id, screen_name)
+
+    # initialize config and Twitter API
+    config = read_config()
+    api = get_app_auth_api(config)
+
+    # process user id or screen name, storing returned Tweets in JSON format
+    num_tweets = 0
+    args = {"count": TIMELINE_COUNT}
+    if user_id is not None:
+        args.update({"user_id": user_id})
+    if screen_name is not None:
+        args.update({"screen_name": screen_name})
+    if since_id > 0:
+        args.update({"since_id": since_id})
+    limit = config.getint("timeline", "limit")
+    for status in Cursor(api.user_timeline, **args).items(limit):
+        writer.write("%s\n" % json.dumps(status._json, separators=(",", ":")))  # pylint: disable=protected-access
+        num_tweets += 1
+    LOGGER.info("downloaded %d Tweet(s)", num_tweets)
+
+    # finished
+    LOGGER.info("get_timeline() finished")
+
+#def bulk_get_timeline(output_dir, user_ids=None, screen_names=None):
+#    user_ids, screen_names = ensure_at_least_one(user_ids, screen_names)
 
 def search(writer, query, since_id=0):
     """Get Tweet-objects from Twitter using the Search API."""
@@ -73,7 +120,8 @@ def search(writer, query, since_id=0):
     }
     if since_id > 0:
         search_params.update({"since_id": since_id})
-    for status in Cursor(api.search, **search_params).items(config.getint("search", "limit")):
+    limit = config.getint("search", "limit")
+    for status in Cursor(api.search, **search_params).items(limit):
         writer.write("%s\n" % json.dumps(status._json, separators=(",", ":")))  # pylint: disable=protected-access
         num_tweets += 1
     LOGGER.info("downloaded %d Tweet(s)", num_tweets)
