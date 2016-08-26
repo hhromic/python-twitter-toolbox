@@ -17,12 +17,9 @@
 
 import logging
 import json
-try:
-    from itertools import izip_longest as zip_longest  # pylint: disable=no-name-in-module
-except ImportError:
-    from itertools import zip_longest  # pylint: disable=no-name-in-module
 from tweepy import Cursor, TweepError
-from .helpers import init_logger, read_config, get_app_auth_api, get_oauth_api, bulk_process
+from .helpers import init_logger, read_config, get_app_auth_api, get_oauth_api
+from .helpers import gen_chunks, bulk_process
 
 # module constants
 LOOKUP_USERS_PER_REQUEST = 100
@@ -49,13 +46,6 @@ def _ensure_only_one(user_id, screen_name):
         raise ValueError("only user_id or screen_name must be provided")
     return user_id, screen_name
 
-def _gen_chunks(first, second, size):
-    merged = [{"from": "first", "el": el} for el in first] + \
-        [{"from": "second", "el": el} for el in second]
-    for chunk in zip_longest(*([iter(merged)] * size)):
-        yield [el["el"] for el in chunk if el and el["from"] == "first"], \
-            [el["el"] for el in chunk if el and el["from"] == "second"]
-
 def _get_ids(writer, endpoint, args, limit=0):
     num_ids = 0
     for user_id in Cursor(endpoint, **args).items(limit):
@@ -74,7 +64,7 @@ def get_hydrated(writer, user_ids=None, screen_names=None):
 
     # process user ids and/or screen names, storing returned users in JSON format
     num_users = 0
-    for chunk in _gen_chunks(user_ids, screen_names, LOOKUP_USERS_PER_REQUEST):
+    for chunk in gen_chunks(user_ids, screen_names, LOOKUP_USERS_PER_REQUEST):
         try:
             for user in api.lookup_users(user_ids=chunk[0], screen_names=chunk[1]):
                 writer.write("%s\n" % json.dumps(user._json, separators=(",", ":")))  # pylint: disable=protected-access

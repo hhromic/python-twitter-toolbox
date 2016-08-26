@@ -23,6 +23,10 @@ try:
     from configparser import ConfigParser  # pylint: disable=import-error
 except ImportError:
     from ConfigParser import ConfigParser  # pylint: disable=import-error
+try:
+    from itertools import izip_longest as zip_longest  # pylint: disable=no-name-in-module
+except ImportError:
+    from itertools import zip_longest  # pylint: disable=no-name-in-module
 import colorlog
 from pkg_resources import resource_stream
 from tweepy import TweepError, API, AppAuthHandler, OAuthHandler
@@ -88,6 +92,14 @@ def get_oauth_api(config):
         config.get("twitter", "access_token_key"),
         config.get("twitter", "access_token_secret"))
     return API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
+
+def gen_chunks(first, second, size):
+    """Generate sequential chunks of given size from two lists."""
+    merged = [{"from": "first", "el": el} for el in first] + \
+        [{"from": "second", "el": el} for el in second]
+    for chunk in zip_longest(*([iter(merged)] * size)):
+        yield [el["el"] for el in chunk if el and el["from"] == "first"], \
+            [el["el"] for el in chunk if el and el["from"] == "second"]
 
 def bulk_process(logger, output_dir, filename_tmpl, function, func_input, var_arg, resume=False):  # pylint: disable=too-many-arguments
     """Process a function in bulk using an iterable input and a variable argument."""
