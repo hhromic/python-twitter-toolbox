@@ -16,6 +16,7 @@
 """Twitter Toolbox for Python helper functions."""
 
 import logging
+import json
 from codecs import getreader
 from os import path, makedirs
 try:
@@ -35,6 +36,15 @@ def _read_lines(filename):
         return []
     with open(filename) as reader:
         return [line.strip() for line in reader if not line.startswith("#")]
+
+def _get_latest_id(filename):
+    latest_id = None
+    with open(filename) as reader:
+        for line in reader:
+            obj = json.loads(line)
+            if latest_id is None or obj["id"] > latest_id:
+                latest_id = obj["id"]
+    return latest_id
 
 def init_logger(logger):
     """Initialize a logger object."""
@@ -79,7 +89,7 @@ def get_oauth_api(config):
         config.get("twitter", "access_token_secret"))
     return API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
 
-def bulk_process(logger, output_dir, filename_tmpl, function, func_input, var_arg):  # pylint: disable=too-many-arguments
+def bulk_process(logger, output_dir, filename_tmpl, function, func_input, var_arg, resume=False):  # pylint: disable=too-many-arguments
     """Process a function in bulk using an iterable input and a variable argument."""
     if not path.exists(output_dir):
         makedirs(output_dir)
@@ -87,13 +97,24 @@ def bulk_process(logger, output_dir, filename_tmpl, function, func_input, var_ar
     num_processed = 0
     for basename, value in func_input:
         output_filename = path.join(output_dir, filename_tmpl % basename)
+
+        # check if there is a previous processing and skip or resume it
+        latest_id = None
         if path.exists(output_filename):
-            logger.warning("skipping existing file: %s", output_filename)
-            continue
+            if not resume:
+                logger.warning("skipping existing file: %s", output_filename)
+                continue
+            latest_id = _get_latest_id(output_filename)
+
+        # process the element with the provided function
         try:
             logger.info("processing: %s", value)
-            with open(output_filename, "w") as writer:
-                function(writer, **{var_arg: value})
+            args = {var_arg: value}
+            if latest_id is not None:
+                args.update({"since_id": latest_id})
+                logger.info("latest id processed: %d", latest_id)
+            with open(output_filename, "a" if resume else "w") as writer:
+                function(writer, **args)
             num_processed += 1
         except TweepError:
             logger.exception("exception while using the REST API")
