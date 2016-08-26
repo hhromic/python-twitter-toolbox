@@ -93,13 +93,14 @@ def get_oauth_api(config):
         config.get("twitter", "access_token_secret"))
     return API(auth, wait_on_rate_limit=True, wait_on_rate_limit_notify=True)
 
-def gen_chunks(first, second, size):
-    """Generate sequential chunks of given size from two lists."""
-    merged = [{"from": "first", "el": el} for el in first] + \
-        [{"from": "second", "el": el} for el in second]
+def gen_chunks(*iterables, **kwargs):
+    """Generate sequential components chunks of certain size from n-iterables."""
+    size = kwargs.get("size", 10)
+    merged = [(idx, el) for idx, iterable in enumerate(iterables) for el in iterable]
     for chunk in zip_longest(*([iter(merged)] * size)):
-        yield [el["el"] for el in chunk if el and el["from"] == "first"], \
-            [el["el"] for el in chunk if el and el["from"] == "second"]
+        components = [[el[1] for el in chunk if el is not None and
+                       el[0] == idx] for idx in range(len(iterables))]
+        yield tuple(components)
 
 def bulk_process(logger, output_dir, filename_tmpl, function, func_input, var_arg, resume=False):  # pylint: disable=too-many-arguments
     """Process a function in bulk using an iterable input and a variable argument."""

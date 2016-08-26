@@ -64,7 +64,7 @@ def get_hydrated(writer, user_ids=None, screen_names=None):
 
     # process user ids and/or screen names, storing returned users in JSON format
     num_users = 0
-    for chunk in gen_chunks(user_ids, screen_names, LOOKUP_USERS_PER_REQUEST):
+    for chunk in gen_chunks(user_ids, screen_names, size=LOOKUP_USERS_PER_REQUEST):
         try:
             for user in api.lookup_users(user_ids=chunk[0], screen_names=chunk[1]):
                 writer.write("%s\n" % json.dumps(user._json, separators=(",", ":")))  # pylint: disable=protected-access

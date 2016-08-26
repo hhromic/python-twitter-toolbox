@@ -39,7 +39,7 @@ def get_hydrated(writer, tweet_ids):
 
     # process Tweet ids, storing returned Tweets in JSON format
     num_tweets = 0
-    for chunk in gen_chunks(tweet_ids, [], LOOKUP_STATUSES_PER_REQUEST):
+    for chunk in gen_chunks(tweet_ids, size=LOOKUP_STATUSES_PER_REQUEST):
         try:
             for tweet in api.statuses_lookup(chunk[0]):
                 writer.write("%s\n" % json.dumps(tweet._json, separators=(",", ":")))  # pylint: disable=protected-access
