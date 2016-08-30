@@ -150,7 +150,7 @@ def bulk_get_friends(output_dir, user_ids=None, screen_names=None):
     LOGGER.info("bulk_get_friends() finished")
 
 def search(writer, query):
-    """Get User-objects from Twitter using the People Search API."""
+    """Get hydrated Twitter User-objects using the People Search API."""
     LOGGER.info("search() starting")
 
     # initialize config and Twitter API
@@ -175,7 +175,7 @@ def search(writer, query):
     LOGGER.info("search() finished")
 
 def bulk_search(output_dir, queries):
-    """Get User-objects from Twitter using the People Search API for a bulk of queries."""
+    """Get hydrated Twitter User-objects using a bulk of People Search API queries."""
     LOGGER.info("bulk_search() starting")
 
     # bulk process queries

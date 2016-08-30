@@ -135,7 +135,7 @@ def bulk_get_timeline(output_dir, user_ids=None, screen_names=None):
     LOGGER.info("bulk_get_timeline() finished")
 
 def search(writer, query, since_id=0):
-    """Get Tweet-objects from Twitter using the Search API."""
+    """Get hydrated Tweet-objects using the Search API."""
     LOGGER.info("search() starting")
 
     # initialize config and Twitter API
@@ -163,7 +163,7 @@ def search(writer, query, since_id=0):
     LOGGER.info("search() finished")
 
 def bulk_search(output_dir, queries):
-    """Get Tweet-objects from Twitter using the Search API for a bulk of queries."""
+    """Get hydrated Tweet-objects using a bulk of Search API queries."""
     LOGGER.info("bulk_search() starting")
 
     # bulk process queries
