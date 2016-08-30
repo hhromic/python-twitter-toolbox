@@ -41,7 +41,7 @@ def _get_ids(writer, endpoint, args, limit=0):
 def get_hydrated(writer, user_ids=None, screen_names=None):
     """Get hydrated Twitter User-objects from a list of user ids and/or screen names."""
     LOGGER.info("get_hydrated() starting")
-    user_ids, screen_names = ensure_at_least_one(user_ids, screen_names)
+    user_ids, screen_names = ensure_at_least_one(user_ids=user_ids, screen_names=screen_names)
 
     # initialize config and Twitter API
     config = read_config()
@@ -64,7 +64,7 @@ def get_hydrated(writer, user_ids=None, screen_names=None):
 def get_followers(writer, user_id=None, screen_name=None):
     """Get the ids of the followers for a Twitter user id or screen name."""
     LOGGER.info("get_followers() starting")
-    user_id, screen_name = ensure_only_one(user_id, screen_name)
+    user_id, screen_name = ensure_only_one(user_id=user_id, screen_name=screen_name)
 
     # initialize config and Twitter API
     config = read_config()
@@ -86,7 +86,7 @@ def get_followers(writer, user_id=None, screen_name=None):
 def bulk_get_followers(output_dir, user_ids=None, screen_names=None):
     """Get the ids of the followers for a bulk of Twitter user ids and/or screen names."""
     LOGGER.info("bulk_get_followers() starting")
-    user_ids, screen_names = ensure_at_least_one(user_ids, screen_names)
+    user_ids, screen_names = ensure_at_least_one(user_ids=user_ids, screen_names=screen_names)
 
     # bulk process user ids
     num_processed = bulk_process(LOGGER, output_dir, "%d.txt", get_followers,
@@ -106,7 +106,7 @@ def bulk_get_followers(output_dir, user_ids=None, screen_names=None):
 def get_friends(writer, user_id=None, screen_name=None):
     """Get the ids of the friends for a Twitter user id or screen name."""
     LOGGER.info("get_friends() starting")
-    user_id, screen_name = ensure_only_one(user_id, screen_name)
+    user_id, screen_name = ensure_only_one(user_id=user_id, screen_name=screen_name)
 
     # initialize config and Twitter API
     config = read_config()
@@ -128,7 +128,7 @@ def get_friends(writer, user_id=None, screen_name=None):
 def bulk_get_friends(output_dir, user_ids=None, screen_names=None):
     """Get the ids of the friends for a bulk of Twitter user ids and/or screen names."""
     LOGGER.info("bulk_get_friends() starting")
-    user_ids, screen_names = ensure_at_least_one(user_ids, screen_names)
+    user_ids, screen_names = ensure_at_least_one(user_ids=user_ids, screen_names=screen_names)
 
     # bulk process user ids
     num_processed = bulk_process(LOGGER, output_dir, "%d.txt", get_friends,

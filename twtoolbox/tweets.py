@@ -87,7 +87,7 @@ def bulk_get_retweets(output_dir, tweet_ids):
 def get_timeline(writer, user_id=None, screen_name=None, since_id=0):
     """Get hydrated Tweet-objects from a user timeline."""
     LOGGER.info("get_timeline() starting")
-    user_id, screen_name = ensure_only_one(user_id, screen_name)
+    user_id, screen_name = ensure_only_one(user_id=user_id, screen_name=screen_name)
 
     # initialize config and Twitter API
     config = read_config()
@@ -114,7 +114,7 @@ def get_timeline(writer, user_id=None, screen_name=None, since_id=0):
 def bulk_get_timeline(output_dir, user_ids=None, screen_names=None):
     """Get hydrated Tweet-objects from a bulk of user timelines."""
     LOGGER.info("bulk_get_timeline() starting")
-    user_ids, screen_names = ensure_at_least_one(user_ids, screen_names)
+    user_ids, screen_names = ensure_at_least_one(user_ids=user_ids, screen_names=screen_names)
 
     # bulk process user ids
     num_processed = bulk_process(LOGGER, output_dir, "%d.txt", get_timeline,
