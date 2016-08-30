@@ -48,9 +48,8 @@ class PassThroughStreamListener(StreamListener):
             LOGGER.error("too many connection attempts, stopping stream")
             return False
 
-def _get_stream(writer, limit=0):
-    config = read_config()
-    api = get_oauth_api(config)  # OAuth gives more capacity for the statuses/lookup API
+def _get_stream(writer, config, limit=0):
+    api = get_oauth_api(config)
     listener = PassThroughStreamListener(writer, limit=limit)
     return Stream(auth=api.auth, listener=listener)
 
@@ -59,8 +58,9 @@ def get_sample(writer):
     LOGGER.info("get_sample() starting")
 
     # initialize a Streaming API object and run the endpoint
+    config = read_config()
     limit = config.getint("sample", "limit")
-    stream = _get_stream(writer, limit=limit)
+    stream = _get_stream(writer, config, limit=limit)
     stream.sample()
 
     # finished
@@ -72,8 +72,9 @@ def get_filter(writer, follow=None, track=None, locations=None):
     ensure_at_least_one(follow=follow, track=track, locations=locations)
 
     # initialize a Streaming API object and run the endpoint
+    config = read_config()
     limit = config.getint("filter", "limit")
-    stream = _get_stream(writer, limit=limit)
+    stream = _get_stream(writer, config, limit=limit)
     stream.filter(follow=follow, track=track, locations=locations)
 
     # finished
@@ -84,8 +85,9 @@ def get_firehose(writer):
     LOGGER.info("get_firehose() starting")
 
     # initialize a Streaming API object and run the endpoint
+    config = read_config()
     limit = config.getint("firehose", "limit")
-    stream = _get_stream(writer, limit=limit)
+    stream = _get_stream(writer, config, limit=limit)
     stream.firehose()
 
     # finished
