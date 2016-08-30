@@ -29,7 +29,7 @@ except ImportError:
     from itertools import zip_longest  # pylint: disable=no-name-in-module
 import colorlog
 from pkg_resources import resource_stream
-from tweepy import TweepError, API, AppAuthHandler, OAuthHandler
+from tweepy import TweepError, API, AppAuthHandler, OAuthHandler, Cursor
 
 # module constants
 CONFIG_DEFAULTS = "defaults.cfg"
@@ -81,32 +81,24 @@ def get_oauth_api(config):
 
 def ensure_at_least_one(**kwargs):
     """Make sure at least one of the given named arguments has data."""
-    ret = {}
     one_found = False
-    for name, arg in kwargs.items():
-        if arg:
+    for kwarg in kwargs.values():
+        if kwarg:
             one_found = True
-        else:
-            arg = []
-        ret.update({name: arg})
     if not one_found:
         raise ValueError("at least one must be provided: %s" % ", ".join(kwargs.keys()))
-    return tuple(ret.values())
 
 def ensure_only_one(**kwargs):
     """Make sure only one of the given named arguments has data."""
-    ret = {}
-    one_found = False
-    for name, arg in kwargs.items():
-        if arg and one_found:
-            one_found = False
+    only_one_found = False
+    for kwarg in kwargs.values():
+        if kwarg and only_one_found:
+            only_one_found = False
             break
-        if arg:
-            one_found = True
-        ret.update({name: arg})
-    if not one_found:
+        if kwarg:
+            only_one_found = True
+    if not only_one_found:
         raise ValueError("only one must be provided: %s" % ", ".join(kwargs.keys()))
-    return tuple(ret.values())
 
 def gen_chunks(*iterables, **kwargs):
     """Generate sequential components chunks of certain size from n-iterables."""
@@ -116,6 +108,26 @@ def gen_chunks(*iterables, **kwargs):
         components = [[el[1] for el in chunk if el is not None and
                        el[0] == idx] for idx in range(len(iterables))]
         yield tuple(components)
+
+def write_ids(writer, endpoint, args, cursored=False, limit=0):
+    """Connect to an endpoint providing ids and write them in plain text format."""
+    num_ids = 0
+    ids = endpoint(**args) if not cursored else \
+          Cursor(endpoint, **args).items(limit)
+    for _id in ids:
+        writer.write("%d\n" % _id)
+        num_ids += 1
+    return num_ids
+
+def write_objs(writer, endpoint, args, cursored=False, limit=0):
+    """Connect to an endpoint providing Twitter objects and write them in JSON format."""
+    num_objs = 0
+    objs = endpoint(**args) if not cursored else \
+           Cursor(endpoint, **args).items(limit)
+    for obj in objs:
+        writer.write("%s\n" % json.dumps(obj._json, separators=(",", ":")))  # pylint: disable=protected-access
+        num_objs += 1
+    return num_objs
 
 def bulk_process(logger, output_dir, filename_tmpl, function, func_input, var_arg, resume=False):  # pylint: disable=too-many-arguments
     """Process a function in bulk using an iterable input and a variable argument."""

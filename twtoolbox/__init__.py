@@ -15,5 +15,6 @@
 
 """Twitter Toolbox for Python package."""
 
+from . import streaming
 from . import tweets
 from . import users

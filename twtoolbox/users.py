@@ -16,10 +16,10 @@
 """Twitter User-objects module."""
 
 import logging
-import json
-from tweepy import Cursor, TweepError
+from tweepy import TweepError
 from .helpers import init_logger, read_config, get_app_auth_api, get_oauth_api
 from .helpers import ensure_at_least_one, ensure_only_one, gen_chunks, bulk_process
+from .helpers import write_ids, write_objs
 
 # module constants
 LOOKUP_USERS_PER_REQUEST = 100
@@ -31,17 +31,12 @@ SEARCH_COUNT = 20
 LOGGER = logging.getLogger(__name__)
 init_logger(LOGGER)
 
-def _get_ids(writer, endpoint, args, limit=0):
-    num_ids = 0
-    for user_id in Cursor(endpoint, **args).items(limit):
-        writer.write("%d\n" % user_id)
-        num_ids += 1
-    return num_ids
-
 def get_hydrated(writer, user_ids=None, screen_names=None):
     """Get hydrated Twitter User-objects from a list of user ids and/or screen names."""
     LOGGER.info("get_hydrated() starting")
-    user_ids, screen_names = ensure_at_least_one(user_ids=user_ids, screen_names=screen_names)
+    ensure_at_least_one(user_ids=user_ids, screen_names=screen_names)
+    user_ids = user_ids if user_ids else []
+    screen_names = screen_names if screen_names else []
 
     # initialize config and Twitter API
     config = read_config()
@@ -51,9 +46,8 @@ def get_hydrated(writer, user_ids=None, screen_names=None):
     num_users = 0
     for chunk in gen_chunks(user_ids, screen_names, size=LOOKUP_USERS_PER_REQUEST):
         try:
-            for user in api.lookup_users(user_ids=chunk[0], screen_names=chunk[1]):
-                writer.write("%s\n" % json.dumps(user._json, separators=(",", ":")))  # pylint: disable=protected-access
-                num_users += 1
+            num_users += write_objs(writer, api.lookup_users,
+                                    {"user_ids": chunk[0], "screen_names": chunk[1]})
         except TweepError:
             LOGGER.exception("exception while using the REST API")
     LOGGER.info("downloaded %d user(s)", num_users)
@@ -64,7 +58,7 @@ def get_hydrated(writer, user_ids=None, screen_names=None):
 def get_followers(writer, user_id=None, screen_name=None):
     """Get the ids of the followers for a Twitter user id or screen name."""
     LOGGER.info("get_followers() starting")
-    user_id, screen_name = ensure_only_one(user_id=user_id, screen_name=screen_name)
+    ensure_only_one(user_id=user_id, screen_name=screen_name)
 
     # initialize config and Twitter API
     config = read_config()
@@ -77,8 +71,8 @@ def get_followers(writer, user_id=None, screen_name=None):
     if screen_name is not None:
         args.update({"screen_name": screen_name})
     limit = config.getint("followers", "limit")
-    result = _get_ids(writer, api.followers_ids, args, limit)
-    LOGGER.info("downloaded %d follower id(s)", result)
+    num_ids = write_ids(writer, api.followers_ids, args, cursored=True, limit=limit)
+    LOGGER.info("downloaded %d follower id(s)", num_ids)
 
     # finished
     LOGGER.info("get_followers() finished")
@@ -86,7 +80,9 @@ def get_followers(writer, user_id=None, screen_name=None):
 def bulk_get_followers(output_dir, user_ids=None, screen_names=None):
     """Get the ids of the followers for a bulk of Twitter user ids and/or screen names."""
     LOGGER.info("bulk_get_followers() starting")
-    user_ids, screen_names = ensure_at_least_one(user_ids=user_ids, screen_names=screen_names)
+    ensure_at_least_one(user_ids=user_ids, screen_names=screen_names)
+    user_ids = user_ids if user_ids else []
+    screen_names = screen_names if screen_names else []
 
     # bulk process user ids
     num_processed = bulk_process(LOGGER, output_dir, "%d.txt", get_followers,
@@ -106,7 +102,7 @@ def bulk_get_followers(output_dir, user_ids=None, screen_names=None):
 def get_friends(writer, user_id=None, screen_name=None):
     """Get the ids of the friends for a Twitter user id or screen name."""
     LOGGER.info("get_friends() starting")
-    user_id, screen_name = ensure_only_one(user_id=user_id, screen_name=screen_name)
+    ensure_only_one(user_id=user_id, screen_name=screen_name)
 
     # initialize config and Twitter API
     config = read_config()
@@ -119,8 +115,8 @@ def get_friends(writer, user_id=None, screen_name=None):
     if screen_name is not None:
         args.update({"screen_name": screen_name})
     limit = config.getint("friends", "limit")
-    result = _get_ids(writer, api.friends_ids, args, limit)
-    LOGGER.info("downloaded %d friend id(s)", result)
+    num_ids = write_ids(writer, api.friends_ids, args, cursored=True, limit=limit)
+    LOGGER.info("downloaded %d friend id(s)", num_ids)
 
     # finished
     LOGGER.info("get_friends() finished")
@@ -128,7 +124,9 @@ def get_friends(writer, user_id=None, screen_name=None):
 def bulk_get_friends(output_dir, user_ids=None, screen_names=None):
     """Get the ids of the friends for a bulk of Twitter user ids and/or screen names."""
     LOGGER.info("bulk_get_friends() starting")
-    user_ids, screen_names = ensure_at_least_one(user_ids=user_ids, screen_names=screen_names)
+    ensure_at_least_one(user_ids=user_ids, screen_names=screen_names)
+    user_ids = user_ids if user_ids else []
+    screen_names = screen_names if screen_names else []
 
     # bulk process user ids
     num_processed = bulk_process(LOGGER, output_dir, "%d.txt", get_friends,
@@ -160,9 +158,8 @@ def search(writer, query):
         "count": SEARCH_COUNT,
     }
     limit = config.getint("search_users", "limit")
-    for user in Cursor(api.search_users, **search_params).items(limit):
-        writer.write("%s\n" % json.dumps(user._json, separators=(",", ":")))  # pylint: disable=protected-access
-        num_users += 1
+    num_users = write_objs(writer, api.search_users, search_params,
+                           cursored=True, limit=limit)
     LOGGER.info("downloaded %d user(s)", num_users)
 
     # finished
