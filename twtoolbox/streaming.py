@@ -70,12 +70,13 @@ def get_filter(writer, follow=None, track=None, locations=None):
     """Get hydrated Tweet-objects from the filter Streaming API endpoint."""
     LOGGER.info("get_filter() starting")
     ensure_at_least_one(follow=follow, track=track, locations=locations)
+    follow = [str(f) for f in follow] if follow else None
 
     # initialize a Streaming API object and run the endpoint
     config = read_config()
     limit = config.getint("filter", "limit")
     stream = _get_stream(writer, config, limit=limit)
-    stream.filter(follow=[str(f) for f in follow], track=track, locations=locations)
+    stream.filter(follow=follow, track=track, locations=locations)
 
     # finished
     LOGGER.info("get_filter() finished")
