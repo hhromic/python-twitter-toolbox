@@ -1,5 +1,7 @@
 # Twitter Toolbox for Python
 
+[TODO] summary here.
+
 ## Installation
 
 You can simply use `pip` (or any similar package manager) for installation:
@@ -12,34 +14,74 @@ or, if you prefer a local user installation:
 
 ## Configuration File
 
+[TODO] describe the config file.
+
 ## Tools for the Streaming API
 
-* tt-streaming-get-sample
-* tt-streaming-get-filter
-* tt-streaming-get-firehose
+* `tt-streaming-get-sample`
+* `tt-streaming-get-filter`
+* `tt-streaming-get-firehose`
+
+All tools have an `--output-file` argument. If omitted, the standard output is used.
+
+Example usage:
+
+    $ tt-streaming-get-sample --output-file tweets.json
+    $ tt-streaming-get-filter --track obama trump --follow 6456345
+    $ tt-streaming-get-filter --locations -122.75 36.8 -121.75 37.8 -74 40 -73 41
+    $ tt-streaming-get-firehose
 
 ## Tools for Tweets
 
-* tt-tweets-get-hydrated
-* tt-tweets-get-retweets
-* tt-tweets-get-timeline
-* tt-tweets-search
+* `tt-tweets-get-hydrated`
+* `tt-tweets-get-retweets`
+* `tt-tweets-get-timeline`
+* `tt-tweets-search`
+
+All tools have an `--output-file` argument. If omitted, the standard output is used.
+
+Example usage:
+
+    $ tt-tweets-get-hydrated --tweet-ids tweet_ids.txt --output-file tweets.json
+    $ tt-tweets-get-retweets --tweet-id 64563457564
+    $ tt-tweets-get-timeline --screen-name insight_centre
+    $ tt-tweets-search --query "twitter api"
 
 ## Tools for Twitter Users
 
-* tt-users-get-hydrated
-* tt-users-get-followers
-* tt-users-get-friends
-* tt-users-search
+* `tt-users-get-hydrated`
+* `tt-users-get-followers`
+* `tt-users-get-friends`
+* `tt-users-search`
+
+All tools have an `--output-file` argument. If omitted, the standard output is used.
+
+Example usage:
+
+    $ tt-users-get-hydrated --user-ids user_ids.txt --screen-names screen_names.txt
+    $ tt-users-get-followers --user-id 54252345
+    $ tt-users-get-friends --screen-name insight_centre
+    $ tt-users-search --query "rte" --output-file users.json
 
 ## Tools for Bulk Processing
 
-* tt-tweets-bulk-get-retweets
-* tt-tweets-bulk-get-timeline
-* tt-tweets-bulk-search
-* tt-users-bulk-get-followers
-* tt-users-bulk-get-friends
-* tt-users-bulk-search
+* `tt-tweets-bulk-get-retweets`
+* `tt-tweets-bulk-get-timeline`
+* `tt-tweets-bulk-search`
+* `tt-users-bulk-get-followers`
+* `tt-users-bulk-get-friends`
+* `tt-users-bulk-search`
+
+All tools have an `--output-dir` argument. The directory is automatically created if not found. Some tools support resuming the bulk processing according to existing files in the output directory.
+
+Example usage:
+
+    $ tt-tweets-bulk-get-retweets --output-dir retweets --tweet-ids tweet_ids.txt
+    $ tt-tweets-bulk-get-timeline --output-dir timelines --screen-names screen_names.txt
+    $ tt-tweets-bulk-search --output-dir searches --queries queries.txt
+    $ tt-users-bulk-get-followers --output-dir followers --user-ids user_ids.txt
+    $ tt-users-bulk-get-friends --output-dir friends --screen_names screen_names.txt
+    $ tt-users-bulk-search --output-dir searches --queries queries.txt
 
 ## Toolbox API
 
