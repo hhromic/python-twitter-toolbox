@@ -54,34 +54,37 @@ def _get_stream(writer, limit=0):
     listener = PassThroughStreamListener(writer, limit=limit)
     return Stream(auth=api.auth, listener=listener)
 
-def get_sample(writer, limit=0):
+def get_sample(writer):
     """Get hydrated Tweet-objects from the sample Streaming API endpoint."""
     LOGGER.info("get_sample() starting")
 
     # initialize a Streaming API object and run the endpoint
+    limit = config.getint("sample", "limit")
     stream = _get_stream(writer, limit=limit)
     stream.sample()
 
     # finished
     LOGGER.info("get_sample() finished")
 
-def get_filter(writer, follow=None, track=None, locations=None, limit=0):
+def get_filter(writer, follow=None, track=None, locations=None):
     """Get hydrated Tweet-objects from the filter Streaming API endpoint."""
     LOGGER.info("get_filter() starting")
     ensure_at_least_one(follow=follow, track=track, locations=locations)
 
     # initialize a Streaming API object and run the endpoint
+    limit = config.getint("filter", "limit")
     stream = _get_stream(writer, limit=limit)
     stream.filter(follow=follow, track=track, locations=locations)
 
     # finished
     LOGGER.info("get_filter() finished")
 
-def get_firehose(writer, limit=0):
+def get_firehose(writer):
     """Get hydrated Tweet-objects from the firehose Streaming API endpoint."""
     LOGGER.info("get_firehose() starting")
 
     # initialize a Streaming API object and run the endpoint
+    limit = config.getint("firehose", "limit")
     stream = _get_stream(writer, limit=limit)
     stream.firehose()
 
