@@ -19,7 +19,7 @@ import logging
 from tweepy import TweepError
 from .helpers import init_logger, read_config, get_app_auth_api, get_oauth_api
 from .helpers import ensure_at_least_one, ensure_only_one, gen_chunks, bulk_process
-from .helpers import write_ids, write_objs
+from .helpers import write_ids, write_objs, log_tweep_error
 
 # module constants
 LOOKUP_USERS_PER_REQUEST = 100
@@ -48,8 +48,8 @@ def get_hydrated(writer, user_ids=None, screen_names=None):
         try:
             num_users += write_objs(writer, api.lookup_users,
                                     {"user_ids": chunk[0], "screen_names": chunk[1]})
-        except TweepError:
-            LOGGER.exception("exception while using the REST API")
+        except TweepError as err:
+            log_tweep_error(LOGGER, err)
     LOGGER.info("downloaded %d user(s)", num_users)
 
     # finished
@@ -71,8 +71,11 @@ def get_followers(writer, user_id=None, screen_name=None):
     if screen_name is not None:
         args.update({"screen_name": screen_name})
     limit = config.getint("followers", "limit")
-    num_ids = write_ids(writer, api.followers_ids, args, cursored=True, limit=limit)
-    LOGGER.info("downloaded %d follower id(s)", num_ids)
+    try:
+        num_ids = write_ids(writer, api.followers_ids, args, cursored=True, limit=limit)
+        LOGGER.info("downloaded %d follower id(s)", num_ids)
+    except TweepError as err:
+        log_tweep_error(LOGGER, err)
 
     # finished
     LOGGER.info("get_followers() finished")
@@ -115,8 +118,11 @@ def get_friends(writer, user_id=None, screen_name=None):
     if screen_name is not None:
         args.update({"screen_name": screen_name})
     limit = config.getint("friends", "limit")
-    num_ids = write_ids(writer, api.friends_ids, args, cursored=True, limit=limit)
-    LOGGER.info("downloaded %d friend id(s)", num_ids)
+    try:
+        num_ids = write_ids(writer, api.friends_ids, args, cursored=True, limit=limit)
+        LOGGER.info("downloaded %d friend id(s)", num_ids)
+    except TweepError as err:
+        log_tweep_error(LOGGER, err)
 
     # finished
     LOGGER.info("get_friends() finished")
@@ -158,9 +164,12 @@ def search(writer, query):
         "count": SEARCH_COUNT,
     }
     limit = config.getint("search_users", "limit")
-    num_users = write_objs(writer, api.search_users, search_params,
-                           cursored=True, limit=limit)
-    LOGGER.info("downloaded %d user(s)", num_users)
+    try:
+        num_users = write_objs(writer, api.search_users, search_params,
+                               cursored=True, limit=limit)
+        LOGGER.info("downloaded %d user(s)", num_users)
+    except TweepError as err:
+        log_tweep_error(LOGGER, err)
 
     # finished
     LOGGER.info("search() finished")

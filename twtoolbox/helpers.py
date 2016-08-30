@@ -159,3 +159,27 @@ def bulk_process(logger, output_dir, filename_tmpl, function, func_input, var_ar
         except TweepError:
             logger.exception("exception while using the REST API")
     return num_processed
+
+def log_tweep_error(logger, tweep_error):
+    """Log a TweepError exception."""
+    if tweep_error.api_code:
+        if tweep_error.api_code == 32:
+            logger.error("invalid API authentication tokens")
+        elif tweep_error.api_code == 34:
+            logger.error("requested object (user, Tweet, etc) not found")
+        elif tweep_error.api_code == 64:
+            logger.error("your account is suspended and is not permitted")
+        elif tweep_error.api_code == 130:
+            logger.error("Twitter is currently in over capacity")
+        elif tweep_error.api_code == 131:
+            logger.error("internal Twitter error occurred")
+        elif tweep_error.api_code == 135:
+            logger.error("could not authenticate your API tokens")
+        elif tweep_error.api_code == 136:
+            logger.error("you have been blocked to perform this action")
+        elif tweep_error.api_code == 179:
+            logger.error("you are not authorized to see this Tweet")
+        else:
+            logger.error("error while using the REST API: %s", tweep_error)
+    else:
+        logger.error("error with Twitter: %s", tweep_error)

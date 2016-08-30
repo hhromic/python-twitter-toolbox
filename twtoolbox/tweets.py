@@ -19,7 +19,7 @@ import logging
 from tweepy import TweepError
 from .helpers import init_logger, read_config, get_app_auth_api, get_oauth_api
 from .helpers import ensure_at_least_one, ensure_only_one, gen_chunks, bulk_process
-from .helpers import write_objs
+from .helpers import write_objs, log_tweep_error
 
 # module constants
 LOOKUP_STATUSES_PER_REQUEST = 100
@@ -44,8 +44,8 @@ def get_hydrated(writer, tweet_ids):
     for chunk in gen_chunks(tweet_ids, size=LOOKUP_STATUSES_PER_REQUEST):
         try:
             num_tweets = write_objs(writer, api.statuses_lookup, {"id_": chunk[0]})
-        except TweepError:
-            LOGGER.exception("exception while using the REST API")
+        except TweepError as err:
+            log_tweep_error(LOGGER, err)
     LOGGER.info("downloaded %d Tweet(s)", num_tweets)
 
     # finished
@@ -60,8 +60,11 @@ def get_retweets(writer, tweet_id):
     api = get_app_auth_api(config)
 
     # process Tweet id, storing returned Retweets in JSON format
-    num_retweets = write_objs(writer, api.retweets, {"id": tweet_id, "count": RETWEETS_COUNT})
-    LOGGER.info("downloaded %d Retweet(s)", num_retweets)
+    try:
+        num_retweets = write_objs(writer, api.retweets, {"id": tweet_id, "count": RETWEETS_COUNT})
+        LOGGER.info("downloaded %d Retweet(s)", num_retweets)
+    except TweepError as err:
+        log_tweep_error(LOGGER, err)
 
     # finished
     LOGGER.info("get_retweets() finished")
@@ -98,8 +101,11 @@ def get_timeline(writer, user_id=None, screen_name=None, since_id=0):
     if since_id > 0:
         args.update({"since_id": since_id})
     limit = config.getint("timeline", "limit")
-    num_tweets = write_objs(writer, api.user_timeline, args, cursored=True, limit=limit)
-    LOGGER.info("downloaded %d Tweet(s)", num_tweets)
+    try:
+        num_tweets = write_objs(writer, api.user_timeline, args, cursored=True, limit=limit)
+        LOGGER.info("downloaded %d Tweet(s)", num_tweets)
+    except TweepError as err:
+        log_tweep_error(LOGGER, err)
 
     # finished
     LOGGER.info("get_timeline() finished")
@@ -146,9 +152,12 @@ def search(writer, query, since_id=0):
     if since_id > 0:
         search_params.update({"since_id": since_id})
     limit = config.getint("search", "limit")
-    num_tweets = write_objs(writer, api.search, search_params,
-                            cursored=True, limit=limit)
-    LOGGER.info("downloaded %d Tweet(s)", num_tweets)
+    try:
+        num_tweets = write_objs(writer, api.search, search_params,
+                                cursored=True, limit=limit)
+        LOGGER.info("downloaded %d Tweet(s)", num_tweets)
+    except TweepError as err:
+        log_tweep_error(LOGGER, err)
 
     # finished
     LOGGER.info("search() finished")
