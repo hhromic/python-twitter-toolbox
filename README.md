@@ -31,7 +31,7 @@ Want to see current real-time sample of Tweets text and you have the [`jq` tool]
 
 As seen, you can omit the `--output-file` argument to get data into your standard output pipe.
 
-Finally, many tools have a **bulk processing* variant that allows you to download data in batches directly and easily.
+Finally, many tools have a **bulk processing** variant that allows you to download data in batches directly and easily.
 For example if you have a list of user ids stored in a file, you can download the follower ids for each of them in separate files stored under a directory using just one command:
 
     tt-users-bulk-get-followers --output-dir followers --user-ids user_ids.txt
@@ -103,7 +103,7 @@ The following is a full example of a suitable configuration file. You can omit t
     [firehose]
     limit = 0
 
-The option values under the `[twitter]` sections should be replaced by your own **Twitter App credentials**.
+The option values under the `[twitter]` section must be replaced by your own **Twitter App credentials**.
 
 If the configuration file, any section or option are not specified, built-in defaults are used.
 
