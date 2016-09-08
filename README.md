@@ -1,20 +1,114 @@
 # Twitter Toolbox for Python
 
-[TODO] summary here.
+Often we need to interact with the [Twitter APIs][twitter-api] to grab some data for research purposes or simple curiosity.
+
+The Twitter API is very rich and powerful, however for many non-experienced users it can be tedious, cumbersome and tricky to code. Specially if you just want quick and reliable access to the API's methods!
+
+For all those users who just want zero programming, this Twitter Toolbox might be very handy. And for those users that want more programmatic access, this Toolbox is also suitable and helpful!
+
+All you need to do to easily start working with the Twitter APIs is to:
+
+1. Sign-up for your own [Twitter App][twitter-apps].
+2. Configure the Toolbox with your generated personal access credentials.
+3. Use the provided command-line tools.
+4. *(optional)* use the provided higher-level Toolbox API for Python in your own code.
+
+Want to grab the list of followers of user `@insight`? No problem:
+
+    tt-users-get-followers --screen-name insight --output-file followers.ids
+
+Want to turn those user Ids into fully hydrated Twitter User objects? No problem:
+
+    tt-users-get-hydrated --user-ids followers.ids --output-file followers.json
+
+Want to receive some real-time Tweets about `obama` or mentioning `@realDonaldTrump`? No problem:
+
+    tt-streaming-get-filter --track obama @realDonaldTrump --output-file tweets.json
+
+Want to see current real-time sample of Tweets text and you have the [`jq` tool][jq] installed? No problem:
+
+    tt-streaming-get-sample | jq .text
+
+As seen, you can omit the `--output-file` argument to get data into your standard output pipe.
+
+Finally, many tools have a **bulk processing* variant that allows you to download data in batches directly and easily.
+For example if you have a list of user ids stored in a file, you can download the follower ids for each of them in separate files stored under a directory using just one command:
+
+    tt-users-bulk-get-followers --output-dir followers --user-ids user_ids.txt
+
+In case of any errors, simply run the command again and it will resume the bulk processing from where it was left.
+
+[twitter-api]: https://dev.twitter.com/overview/api
+[twitter-apps]: https://apps.twitter.com/
+[jq]: https://stedolan.github.io/jq/
 
 ## Installation
 
-You can simply use `pip` (or any similar package manager) for installation:
+You can use `pip` (or any `PyPI`-compatible package manager) for installation:
 
-    $ pip install twitter-toolbox
+    pip install twitter-toolbox
 
 or, if you prefer a local user installation:
 
-    $ pip install --user twitter-toolbox
+    pip install --user twitter-toolbox
 
 ## Configuration File
 
-[TODO] describe the config file.
+The Twitter Toolbox is globally configured using the simple [configuration language from Python][python-config] stored into a file named `.twtoolbox.cfg` under your home directory (please note the leading period `.`).
+
+The available configuration sections and options are:
+
+* `[twitter]`: **(required)** for configuring your own Twitter API's access credentials. Options: `consumer_key`, `consumer_secret`, `access_token_key`, `access_token_secret`.
+* `[search]`: for configuring access to the Tweets Search API. Options: `limit`.
+* `[search_users]`: for configuring access to the Users Search API. Options: `limit`.
+* `[timeline]`: for configuring access to the Users Timeline API. Options: `limit`.
+* `[followers]`: for configuring access to the User Followers API. Options: `limit`.
+* `[friends]`: for configuring access to the User Friends API. Options: `limit`.
+* `[sample]`: for configuring access to the Streaming API's Sample Endpoint. Options: `limit`.
+* `[filter]`: for configuring access to the Streaming API's Filter Endpoint. Options: `limit`.
+* `[firehose]`: for configuring access to the Streaming API's Firehose Endpoint. Options: `limit`.
+
+All the `limit` options specify the maximum number of results (users, Tweets, Ids) you want to download from Twitter, with `0` meaning *unlimited*.
+Be very careful with this option, the higher the number the easier you will exhaust your [API rate limits][api-rate-limits]. It is strongly recommended that you use the defaults from the Toolbox.
+
+The following is a full example of a suitable configuration file. You can omit those sections/options that you want the defaults to be used. The very minimum is the `[twitter]` section with your configured API credentials.
+
+    [twitter]
+    consumer_key=YOUR_CONSUMER_KEY_HERE
+    consumer_secret=YOUR_CONSUMER_SECRET_HERE
+    access_token_key=YOUR_ACCESS_TOKEN_KEY_HERE
+    access_token_secret=YOUR_ACCESS_TOKEN_SECRET_HERE
+
+    [search]
+    limit = 0
+
+    [search_users]
+    limit = 1000
+
+    [timeline]
+    limit = 0
+
+    [followers]
+    limit = 30000
+
+    [friends]
+    limit = 30000
+
+    [sample]
+    limit = 0
+
+    [filter]
+    limit = 0
+
+    [firehose]
+    limit = 0
+
+The option values under the `[twitter]` sections should be replaced by your own **Twitter App credentials**.
+
+If the configuration file, any section or option are not specified, built-in defaults are used.
+
+[python-config]: https://docs.python.org/2/library/configparser.html
+[api-rate-limits]: https://dev.twitter.com/rest/public/rate-limiting
 
 ## Tools for the Streaming API
 
@@ -22,14 +116,14 @@ or, if you prefer a local user installation:
 * `tt-streaming-get-filter`
 * `tt-streaming-get-firehose`
 
-All tools have an `--output-file` argument. If omitted, the standard output is used.
+All tools have an `--output-file` argument. If omitted, the standard output pipe is used.
 
 Example usage:
 
-    $ tt-streaming-get-sample --output-file tweets.json
-    $ tt-streaming-get-filter --track obama trump --follow 6456345
-    $ tt-streaming-get-filter --locations -122.75 36.8 -121.75 37.8 -74 40 -73 41
-    $ tt-streaming-get-firehose
+    tt-streaming-get-sample --output-file tweets.json
+    tt-streaming-get-filter --track obama trump --follow 6456345
+    tt-streaming-get-filter --locations -122.75 36.8 -121.75 37.8 -74 40 -73 41
+    tt-streaming-get-firehose
 
 ## Tools for Tweets
 
@@ -42,10 +136,10 @@ All tools have an `--output-file` argument. If omitted, the standard output is u
 
 Example usage:
 
-    $ tt-tweets-get-hydrated --tweet-ids tweet_ids.txt --output-file tweets.json
-    $ tt-tweets-get-retweets --tweet-id 64563457564
-    $ tt-tweets-get-timeline --screen-name insight_centre
-    $ tt-tweets-search --query "twitter api"
+    tt-tweets-get-hydrated --tweet-ids tweet_ids.txt --output-file tweets.json
+    tt-tweets-get-retweets --tweet-id 64563457564
+    tt-tweets-get-timeline --screen-name insight_centre
+    tt-tweets-search --query "twitter api"
 
 ## Tools for Twitter Users
 
@@ -58,10 +152,10 @@ All tools have an `--output-file` argument. If omitted, the standard output is u
 
 Example usage:
 
-    $ tt-users-get-hydrated --user-ids user_ids.txt --screen-names screen_names.txt
-    $ tt-users-get-followers --user-id 54252345
-    $ tt-users-get-friends --screen-name insight_centre
-    $ tt-users-search --query "rte" --output-file users.json
+    tt-users-get-hydrated --user-ids user_ids.txt --screen-names screen_names.txt
+    tt-users-get-followers --user-id 54252345
+    tt-users-get-friends --screen-name insight_centre
+    tt-users-search --query "rte" --output-file users.json
 
 ## Tools for Bulk Processing
 
@@ -76,12 +170,12 @@ All tools have an `--output-dir` argument. The directory is automatically create
 
 Example usage:
 
-    $ tt-tweets-bulk-get-retweets --output-dir retweets --tweet-ids tweet_ids.txt
-    $ tt-tweets-bulk-get-timeline --output-dir timelines --screen-names screen_names.txt
-    $ tt-tweets-bulk-search --output-dir searches --queries queries.txt
-    $ tt-users-bulk-get-followers --output-dir followers --user-ids user_ids.txt
-    $ tt-users-bulk-get-friends --output-dir friends --screen_names screen_names.txt
-    $ tt-users-bulk-search --output-dir searches --queries queries.txt
+    tt-tweets-bulk-get-retweets --output-dir retweets --tweet-ids tweet_ids.txt
+    tt-tweets-bulk-get-timeline --output-dir timelines --screen-names screen_names.txt
+    tt-tweets-bulk-search --output-dir searches --queries queries.txt
+    tt-users-bulk-get-followers --output-dir followers --user-ids user_ids.txt
+    tt-users-bulk-get-friends --output-dir friends --screen_names screen_names.txt
+    tt-users-bulk-search --output-dir searches --queries queries.txt
 
 ## Toolbox API
 
