@@ -27,10 +27,10 @@ from . import users
 LOGGER = logging.getLogger(__name__)
 init_logger(LOGGER)
 
-def _get_writer(filename):
+def _get_writer(filename, resume=False):
     if filename is None:
         return sys.stdout
-    return open(filename, "w")
+    return open(filename, "a" if resume else "w")
 
 def _read_strings(filename):
     if filename is None:
@@ -54,8 +54,10 @@ def tt_streaming_get_sample():
     parser = ArgumentParser(description=streaming.get_sample.__doc__)
     parser.add_argument("--output-file", metavar="FILE", required=False,
                         help="file for output hydrated Tweets (JSON format)")
+    parser.add_argument("--resume", action="store_true", required=False,
+                        help="resume writing to the output file instead of truncating")
     args = parser.parse_args()
-    with _get_writer(args.output_file) as writer:
+    with _get_writer(args.output_file, args.resume) as writer:
         _safe_call(streaming.get_sample, writer)
 
 def tt_streaming_get_filter():
@@ -69,10 +71,12 @@ def tt_streaming_get_filter():
                         help="list of coordinates to filter by locations")
     parser.add_argument("--output-file", metavar="FILE", required=False,
                         help="file for output hydrated Tweets (JSON format)")
+    parser.add_argument("--resume", action="store_true", required=False,
+                        help="resume writing to the output file instead of truncating")
     args = parser.parse_args()
     if args.locations and (len(args.locations) % 4) != 0:
         parser.error("you must give exactly four coordinates per bounding box")
-    with _get_writer(args.output_file) as writer:
+    with _get_writer(args.output_file, args.resume) as writer:
         _safe_call(streaming.get_filter, writer,
                    follow=args.follow, track=args.track, locations=args.locations)
 
@@ -81,8 +85,10 @@ def tt_streaming_get_firehose():
     parser = ArgumentParser(description=streaming.get_firehose.__doc__)
     parser.add_argument("--output-file", metavar="FILE", required=False,
                         help="file for output hydrated Tweets (JSON format)")
+    parser.add_argument("--resume", action="store_true", required=False,
+                        help="resume writing to the output file instead of truncating")
     args = parser.parse_args()
-    with _get_writer(args.output_file) as writer:
+    with _get_writer(args.output_file, args.resume) as writer:
         _safe_call(streaming.get_firehose, writer)
 
 ### Tools for Tweets ###
@@ -94,9 +100,11 @@ def tt_tweets_get_hydrated():
                         help="file with input Tweet ids (text format)")
     parser.add_argument("--output-file", metavar="FILE",
                         help="file for output hydrated Tweets (JSON format)")
+    parser.add_argument("--resume", action="store_true", required=False,
+                        help="resume writing to the output file instead of truncating")
     args = parser.parse_args()
     tweet_ids = _read_integers(args.tweet_ids)
-    with _get_writer(args.output_file) as writer:
+    with _get_writer(args.output_file, args.resume) as writer:
         _safe_call(tweets.get_hydrated, writer, tweet_ids)
 
 def tt_tweets_get_retweets():
@@ -106,8 +114,10 @@ def tt_tweets_get_retweets():
                         help="Tweet Id to get the retweets for")
     parser.add_argument("--output-file", metavar="FILE",
                         help="file for output hydrated Retweets (JSON format)")
+    parser.add_argument("--resume", action="store_true", required=False,
+                        help="resume writing to the output file instead of truncating")
     args = parser.parse_args()
-    with _get_writer(args.output_file) as writer:
+    with _get_writer(args.output_file, args.resume) as writer:
         _safe_call(tweets.get_retweets, writer, args.tweet_id)
 
 def tt_tweets_get_timeline():
@@ -119,8 +129,10 @@ def tt_tweets_get_timeline():
                         help="User screen name to get the timeline for")
     parser.add_argument("--output-file", metavar="FILE",
                         help="file for output hydrated Tweets (JSON format)")
+    parser.add_argument("--resume", action="store_true", required=False,
+                        help="resume writing to the output file instead of truncating")
     args = parser.parse_args()
-    with _get_writer(args.output_file) as writer:
+    with _get_writer(args.output_file, args.resume) as writer:
         _safe_call(tweets.get_timeline, writer,
                    user_id=args.user_id, screen_name=args.screen_name)
 
@@ -131,8 +143,10 @@ def tt_tweets_search():
                         help="query for searching Tweets")
     parser.add_argument("--output-file", metavar="FILE",
                         help="file for output hydrated Tweets (JSON format)")
+    parser.add_argument("--resume", action="store_true", required=False,
+                        help="resume writing to the output file instead of truncating")
     args = parser.parse_args()
-    with _get_writer(args.output_file) as writer:
+    with _get_writer(args.output_file, args.resume) as writer:
         _safe_call(tweets.search, writer, args.query)
 
 ### Tools for Twitter Users ###
@@ -146,10 +160,12 @@ def tt_users_get_hydrated():
                         help="file with input user screen names (text format)")
     parser.add_argument("--output-file", metavar="FILE",
                         help="file for output hydrated users (JSON format)")
+    parser.add_argument("--resume", action="store_true", required=False,
+                        help="resume writing to the output file instead of truncating")
     args = parser.parse_args()
     user_ids = _read_integers(args.user_ids)
     screen_names = _read_strings(args.screen_names)
-    with _get_writer(args.output_file) as writer:
+    with _get_writer(args.output_file, args.resume) as writer:
         _safe_call(users.get_hydrated, writer, user_ids, screen_names)
 
 def tt_users_get_followers():
@@ -161,8 +177,10 @@ def tt_users_get_followers():
                         help="User screen name to get the followers for")
     parser.add_argument("--output-file", metavar="FILE",
                         help="file for output follower ids (text format)")
+    parser.add_argument("--resume", action="store_true", required=False,
+                        help="resume writing to the output file instead of truncating")
     args = parser.parse_args()
-    with _get_writer(args.output_file) as writer:
+    with _get_writer(args.output_file, args.resume) as writer:
         _safe_call(users.get_followers, writer,
                    user_id=args.user_id, screen_name=args.screen_name)
 
@@ -175,8 +193,10 @@ def tt_users_get_friends():
                         help="User screen name to get the friends for")
     parser.add_argument("--output-file", metavar="FILE",
                         help="file for output friend ids (text format)")
+    parser.add_argument("--resume", action="store_true", required=False,
+                        help="resume writing to the output file instead of truncating")
     args = parser.parse_args()
-    with _get_writer(args.output_file) as writer:
+    with _get_writer(args.output_file, args.resume) as writer:
         _safe_call(users.get_friends, writer,
                    user_id=args.user_id, screen_name=args.screen_name)
 
@@ -187,8 +207,10 @@ def tt_users_search():
                         help="query for searching users")
     parser.add_argument("--output-file", metavar="FILE",
                         help="file for output hydrated users (JSON format)")
+    parser.add_argument("--resume", action="store_true", required=False,
+                        help="resume writing to the output file instead of truncating")
     args = parser.parse_args()
-    with _get_writer(args.output_file) as writer:
+    with _get_writer(args.output_file, args.resume) as writer:
         _safe_call(users.search, writer, args.query)
 
 ### Tools for Bulk Processing ###

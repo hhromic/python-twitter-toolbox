@@ -17,9 +17,13 @@
 
 import logging
 import json
+import time
 from tweepy import StreamListener, Stream
 from .helpers import init_logger, read_config, get_oauth_api
 from .helpers import ensure_at_least_one
+
+# module constants
+RETRY_INTERVAL = 3
 
 # module logging
 LOGGER = logging.getLogger(__name__)
@@ -53,6 +57,17 @@ def _get_stream(writer, config, limit=0):
     listener = PassThroughStreamListener(writer, limit=limit)
     return Stream(auth=api.auth, listener=listener)
 
+def _safe_stream_run(func, *args, **kwargs):
+    running = True
+    while running:
+        try:
+            func(*args, **kwargs)
+            running = False
+        except Exception as excp:  # pylint: disable=broad-except
+            LOGGER.warning(excp)
+            LOGGER.info("reconnecting stream ...")
+            time.sleep(RETRY_INTERVAL)
+
 def get_sample(writer):
     """Get hydrated Tweet-objects from the sample Streaming API endpoint."""
     LOGGER.info("get_sample() starting")
@@ -61,7 +76,7 @@ def get_sample(writer):
     config = read_config()
     limit = config.getint("sample", "limit")
     stream = _get_stream(writer, config, limit=limit)
-    stream.sample()
+    _safe_stream_run(stream.sample)
 
     # finished
     LOGGER.info("get_sample() finished")
@@ -76,7 +91,7 @@ def get_filter(writer, follow=None, track=None, locations=None):
     config = read_config()
     limit = config.getint("filter", "limit")
     stream = _get_stream(writer, config, limit=limit)
-    stream.filter(follow=follow, track=track, locations=locations)
+    _safe_stream_run(stream.filter, follow=follow, track=track, locations=locations)
 
     # finished
     LOGGER.info("get_filter() finished")
@@ -89,7 +104,7 @@ def get_firehose(writer):
     config = read_config()
     limit = config.getint("firehose", "limit")
     stream = _get_stream(writer, config, limit=limit)
-    stream.firehose()
+    _safe_stream_run(stream.firehose)
 
     # finished
     LOGGER.info("get_firehose() finished")

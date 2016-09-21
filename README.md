@@ -13,9 +13,9 @@ All you need to do to easily start working with the Twitter APIs is to:
 3. Use the provided command-line tools.
 4. *(optional)* use the provided higher-level Toolbox API for Python in your own code.
 
-Want to grab the list of followers of user `@insight`? No problem:
+Want to grab the list of followers of user `@insight_centre`? No problem:
 
-    tt-users-get-followers --screen-name insight --output-file followers.ids
+    tt-users-get-followers --screen-name insight_centre --output-file followers.ids
 
 Want to turn those user Ids into fully hydrated Twitter User objects? No problem:
 
@@ -118,10 +118,12 @@ If the configuration file, any section or option are not specified, built-in def
 
 All tools have an `--output-file` argument. If omitted, the standard output pipe is used.
 
+Additionally, all tools also have a `--resume` flag to indicate that you want to append data to an existing output file instead of truncating it. Beware that this option does not de-duplicate existing data.
+
 Example usage:
 
     tt-streaming-get-sample --output-file tweets.json
-    tt-streaming-get-filter --track obama trump --follow 6456345
+    tt-streaming-get-filter --track obama trump --follow 6456345 --resume
     tt-streaming-get-filter --locations -122.75 36.8 -121.75 37.8 -74 40 -73 41
     tt-streaming-get-firehose
 
@@ -134,12 +136,14 @@ Example usage:
 
 All tools have an `--output-file` argument. If omitted, the standard output is used.
 
+Additionally, all tools also have a `--resume` flag to indicate that you want to append data to an existing output file instead of truncating it. Beware that this option does not de-duplicate existing data.
+
 Example usage:
 
     tt-tweets-get-hydrated --tweet-ids tweet_ids.txt --output-file tweets.json
     tt-tweets-get-retweets --tweet-id 64563457564
     tt-tweets-get-timeline --screen-name insight_centre
-    tt-tweets-search --query "twitter api"
+    tt-tweets-search --query "twitter api" --resume
 
 ## Tools for Twitter Users
 
@@ -150,11 +154,13 @@ Example usage:
 
 All tools have an `--output-file` argument. If omitted, the standard output is used.
 
+Additionally, all tools also have a `--resume` flag to indicate that you want to append data to an existing output file instead of truncating it. Beware that this option does not de-duplicate existing data.
+
 Example usage:
 
     tt-users-get-hydrated --user-ids user_ids.txt --screen-names screen_names.txt
     tt-users-get-followers --user-id 54252345
-    tt-users-get-friends --screen-name insight_centre
+    tt-users-get-friends --screen-name insight_centre --resume
     tt-users-search --query "rte" --output-file users.json
 
 ## Tools for Bulk Processing
