@@ -36,7 +36,7 @@ def _read_strings(filename):
     if filename is None:
         return []
     with open(filename) as reader:
-        return [line.strip() for line in reader if not line.startswith("#")]
+        return [line.strip() for line in reader if not line.startswith("##")]
 
 def _read_integers(filename):
     return [int(line) for line in _read_strings(filename)]
