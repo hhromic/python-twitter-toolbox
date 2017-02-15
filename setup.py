@@ -13,5 +13,6 @@ CONSOLE_SCRIPTS = ["%s = twtoolbox.cli:%s" % (fn.name.replace("_", "-"), fn.name
 
 setup(
     packages=find_packages(),
+    install_requires=["tweepy", "colorlog"],
     entry_points={"console_scripts": CONSOLE_SCRIPTS},
 )
