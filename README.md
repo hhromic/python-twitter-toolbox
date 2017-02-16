@@ -52,6 +52,10 @@ or, if you prefer a local user installation:
 
     pip install --user twitter-toolbox
 
+For **Microsoft Windows** users, you should run `pip` through the Python interpreter:
+
+    python -m pip install twitter-toolbox
+
 ## Configuration File
 
 The Twitter Toolbox is globally configured using the simple [configuration language from Python][python-config] stored into a file named `.twtoolbox.cfg` under your home directory (please note the leading period `.`).
