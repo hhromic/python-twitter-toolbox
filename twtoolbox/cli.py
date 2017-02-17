@@ -18,6 +18,7 @@
 import sys
 import logging
 from argparse import ArgumentParser
+from contextlib import closing
 from .helpers import init_logger
 from . import streaming
 from . import tweets
@@ -29,7 +30,9 @@ init_logger(LOGGER)
 
 def _get_writer(filename, resume=False):
     if filename is None:
-        return sys.stdout
+        if "__exit__" in dir(sys.stdout):
+            return sys.stdout
+        return closing(sys.stdout)
     return open(filename, "a" if resume else "w")
 
 def _read_strings(filename):
