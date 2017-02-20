@@ -74,7 +74,7 @@ Configuration File
 
 The Twitter Toolbox is globally configured using the simple `configuration language from Python <https://docs.python.org/2/library/configparser.html>`__ stored into a file named ``.twtoolbox.cfg`` under your home directory (please note the leading period ``.``).
 
-You can easily create a minimal basic configuration from your Twitter API acess credentials using the ``tt-config`` command-line tool. Example usage:
+You can easily create a minimal basic configuration from your Twitter API access credentials using the ``tt-config`` command-line tool. Example usage:
 
 ::
 
