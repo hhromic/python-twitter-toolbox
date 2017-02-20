@@ -19,10 +19,15 @@ import sys
 import logging
 from argparse import ArgumentParser
 from contextlib import closing
-from .helpers import init_logger
+from .helpers import init_logger, gen_basic_config
 from . import streaming
 from . import tweets
 from . import users
+
+try:
+    input = raw_input  # pylint: disable=redefined-builtin, invalid-name
+except NameError:
+    pass
 
 # module logging
 LOGGER = logging.getLogger(__name__)
@@ -49,6 +54,18 @@ def _safe_call(func, *args, **kwargs):
         func(*args, **kwargs)
     except Exception as excp:  # pylint: disable=broad-except
         LOGGER.error(excp)
+
+### Tools for Configuring the Toolbox ###
+
+def tt_config():
+    """Generate a basic config file for the Toolbox using Twitter authentication data."""
+    print("WARNING: this tool will create a **NEW** config file and")
+    print("  overwrite any existing previous configuration.\n")
+    consumer_key = input("Consumer Key ...... : ")
+    consumer_secret = input("Consumer Secret ... : ")
+    access_token_key = input("Access Token Key .. : ")
+    access_token_secret = input("Access Token Secret : ")
+    gen_basic_config(consumer_key, consumer_secret, access_token_key, access_token_secret)
 
 ### Tools for the Streaming API ###
 

@@ -74,6 +74,21 @@ Configuration File
 
 The Twitter Toolbox is globally configured using the simple `configuration language from Python <https://docs.python.org/2/library/configparser.html>`__ stored into a file named ``.twtoolbox.cfg`` under your home directory (please note the leading period ``.``).
 
+You can easily create a minimal basic configuration from your Twitter API acess credentials using the ``tt-config`` command-line tool. Example usage:
+
+::
+
+    $ tt-config
+    WARNING: this tool will create a **NEW** config file and
+      overwrite any existing previous configuration.
+
+    Consumer Key ...... : <INPUT YOUR CONSUMER KEY HERE>
+    Consumer Secret ... : <INPUT YOUR CONSUMER SECRET HERE>
+    Access Token Key .. : <INPUT YOUR ACCESS TOKEN KEY HERE>
+    Access Token Secret : <INPUT YOUR ACCESS TOKEN SECRET HERE>
+
+After you input your authentication data, a new minimal configuration file will be created in your home directory (replacing any previous existing file!). You can further customize this file using the below configuration sections and options.
+
 The available configuration sections and options are:
 
 -  ``[twitter]``: **(required)** for configuring your own Twitter API's access credentials. Options: ``consumer_key``, ``consumer_secret``, ``access_token_key``, ``access_token_secret``.

@@ -55,6 +55,17 @@ def init_logger(logger):
     logger.setLevel(logging.INFO)
     logger.addHandler(colored_handler)
 
+def gen_basic_config(consumer_key, consumer_secret, access_token_key, access_token_secret):
+    """Generate an initial basic config with Twitter API authentication data."""
+    config = ConfigParser()
+    config.add_section("twitter")
+    config.set("twitter", "consumer_key", consumer_key)
+    config.set("twitter", "consumer_secret", consumer_secret)
+    config.set("twitter", "access_token_key", access_token_key)
+    config.set("twitter", "access_token_secret", access_token_secret)
+    with open(path.expanduser(CONFIG_USER), "w") as writer:
+        config.write(writer)
+
 def read_config():
     """Read default config and overlay user-defined config."""
     config = ConfigParser()
