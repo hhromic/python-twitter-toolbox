@@ -7,7 +7,7 @@ import ast
 from os import path
 from setuptools import setup, find_packages
 
-VERSION = "1.2.1"
+VERSION = "1.2.2"
 DESCRIPTION = "Twitter Toolbox for Python"
 AUTHOR = "Hugo Hromic"
 AUTHOR_EMAIL = "hhromic@gmail.com"
