@@ -27,8 +27,8 @@ try:
     from itertools import izip_longest as zip_longest  # pylint: disable=no-name-in-module
 except ImportError:
     from itertools import zip_longest  # pylint: disable=no-name-in-module
-import colorlog
 from pkg_resources import resource_stream
+import colorlog
 from tweepy import TweepError, API, AppAuthHandler, OAuthHandler, Cursor
 
 # module constants

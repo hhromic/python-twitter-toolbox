@@ -33,7 +33,7 @@ class PassThroughStreamListener(StreamListener):
     """Stream Listener that passes incoming messages directly to a writer."""
 
     def __init__(self, writer, limit=0, **kwargs):
-        super(self.__class__, self).__init__(**kwargs)
+        super(PassThroughStreamListener, self).__init__(**kwargs)
         self.writer = writer
         self.limit = limit
         self.num_written = 0
@@ -51,6 +51,7 @@ class PassThroughStreamListener(StreamListener):
         if status_code == 420:
             LOGGER.error("too many connection attempts, stopping stream")
             return False
+        return True
 
 def _get_stream(writer, config, limit=0):
     api = get_oauth_api(config)
