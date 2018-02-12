@@ -37,6 +37,7 @@ setup(
     license="Apache-2.0",
     platforms=["all"],
     long_description=read_long_description(),
+    long_description_content_type="text/x-rst",
     packages=find_packages(),
     package_data={"twtoolbox": ["defaults.cfg"]},
     entry_points={"console_scripts": generate_console_scripts()},
